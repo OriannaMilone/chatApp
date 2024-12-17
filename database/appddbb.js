@@ -7,13 +7,18 @@ users.email_user = {};
 chat = {}
 chat.data = {}
 
-chat.regiterMessage = function(usename, message){
-    chat.data[usename] = chat.data[usename] || [];
-    chat.data[usename].push(message);
+chat.regiterMessage = function(chatTitle, username, message){
+    chat.data[chatTitle] = chat.data[chatTitle] || {};
+    chat.data[chatTitle][username] = chat.data[chatTitle][username] || [];
+    chat.data[chatTitle][username].push(message);
 }
 
-chat.getMessages = function(usename){
-    return chat.data[username] || [];
+chat.getChat = function(chatTitle){  
+    const totalChat = []
+    chat.data[chatTitle][usename].forEach(user => {
+        totalChat.append(chat.data[chatTitle][user])
+    });
+    return totalChat
 }
 
 users.register = function(username, email, password) {
