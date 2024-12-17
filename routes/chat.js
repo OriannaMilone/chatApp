@@ -2,7 +2,7 @@
 var express = require('express');
 var router = express.Router();
 
-const db = require('../database/appddb.js');
+// const db = require('../database/appddb.js');
 
 router.get('/', function(req, res) {
     const userData = req.session.user;
