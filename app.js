@@ -14,7 +14,8 @@ var loginRouter = require('./routes/login');
 
 var app = express();
 
-app.locals.title = "Capitana O"
+app.locals.title = "Capitana O";
+app.locals.cookie = false;
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
@@ -52,9 +53,10 @@ app.get('/check-cookies', (req, res) => {
 
 app.post('/accept-cookies', (req, res) => {
   req.session.user = { name: 'invitado'};
-  res.cookie('user', JSON.stringify({ name: 'invitado', cookiesAccepted: true, role: 'invitado'}),{httpOnly: false}); //, { maxAge: 60 * 60 * 1000 }); // Expira en 1 hora);
+  res.cookie('role', 'invitado' ,{httpOnly: false}); //, { maxAge: 60 * 60 * 1000 }); // Expira en 1 hora);
   console.log(req.session.user) 
 
+  app.locals.cookie = true;
   res.sendStatus(200);
 });
 
