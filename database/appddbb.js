@@ -1,70 +1,83 @@
 // appddbb.js
 const bcrypt = require('bcrypt');
 
-users = {}
-users.data = {}
-users.email_user = {};
-chat = {}
-chat.data = {}
-
-chat.regiterMessage = function(chatTitle, username, message){
-    chat.data[chatTitle] = chat.data[chatTitle] || {};
-    chat.data[chatTitle][username] = chat.data[chatTitle][username] || [];
-    chat.data[chatTitle][username].push(message);
-}
-
-chat.getChat = function(chatTitle){  
-    const totalChat = []
-    chat.data[chatTitle][usename].forEach(user => {
-        totalChat.append(chat.data[chatTitle][user])
-    });
-    return totalChat
-}
-
-users.register = function(username, email, password) {
-    if(users.data.hasOwnProperty(username)){
-        throw new Error(`Ya existe el usuario ${username}.`);
-    }
-    if(users.data.hasOwnProperty(email)){
-        throw new Error(`Ya existe el usuario ${email}.`);
-    }
-    users.generateHash(password, function(err, hash){
-        if (err) {
-            res.status(500).send("Server Error")
+const users = {
+    data: {},
+    email_user: {},
+    register: async function(username, email, password) {
+        if (this.data.hasOwnProperty(username)) {
+            throw new Error(`Ya existe el usuario ${username}.`);
         }
-        users.data[username] = {username, email, hash}
-    })
-}
-
-users.generateHash = function(password, callback){
-    bcrypt.hash(password, 10, callback);
-}
-
-users.isLoginRight = async function(email_user, type, password){
-    if(type == 'email'){
-        if(!users.email_user.hasOwnProperty(email_user)){
-            return false;
+        if (this.data.hasOwnProperty(email)) {
+            throw new Error(`Ya existe el usuario ${email}.`);
         }
-        return await users.comparePass(password, users.data[users.email_user[email_user]].hash);    
-    }else{
-        if(!users.data.hasOwnProperty(email_user)){
-            return false;
+        try {
+            const hash = await new Promise((resolve, reject) => {
+                this.generateHash(password, (err, hash) => {
+                    if (err) reject(err);
+                    else resolve(hash);
+                });
+            });
+            this.data[username] = { username, email, hash };
+            this.email_user[email] = username;
+        } catch (err) {
+            throw new Error('Error al registrar el usuario: ' + err.message);
         }
-        return await users.comparePass(password, users.data[email_user].hash);
+    },
+
+    generateHash: function(password, callback) {
+        bcrypt.hash(password, 10, callback);
+    },
+
+    comparePass: async function(password, hash) {
+        return await bcrypt.compare(password, hash);
+    },
+
+    isLoginRight: async function(email_user, type, password) {
+        if (type == 'email') {
+            if (!this.email_user.hasOwnProperty(email_user)) {
+                return false;
+            }
+            return await this.comparePass(password, this.data[this.email_user[email_user]].hash);
+        } else {
+            if (!this.data.hasOwnProperty(email_user)) {
+                return false;
+            }
+            return await this.comparePass(password, this.data[email_user].hash);
+        }
+    },
+
+    getEmailByUsername: function(username) {
+        return this.data[username].email;
+    },
+
+    getUsernameByEmail: function(email) {
+        return this.email_user[email];
     }
-    
-}
+};
 
-users.getEmailByUsername = function(username){
-    return users.data[username].email;
-}
+const chat = {
+    data: {},
+    registerMessage: function(chatTitle, username, message) {
+        this.data[chatTitle] = this.data[chatTitle] || {};
+        this.data[chatTitle][username] = this.data[chatTitle][username] || [];
+        this.data[chatTitle][username].push({ username, content: message });
+    },
 
-users.getUsernameByEmail = function(email){
-    return users.email_user[email];
-}
+    getUserMessages: function(chatTitle, username) {
+        return this.data[chatTitle]?.[username] || [];
+    },
 
-users.comparePass = async function(password, hash){
-    return await bcrypt.compare(password, hash);
-}
+    getChat: function(chatTitle) {
+        const totalChat = [];
+        const chatUsers = this.data[chatTitle] || {};
 
-module.exports = users;
+        Object.values(chatUsers).forEach(userMessages => {
+            totalChat.push(...userMessages);
+        });
+
+        return totalChat;
+    }
+};
+
+module.exports = { users, chat };

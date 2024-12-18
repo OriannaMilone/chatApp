@@ -8,6 +8,7 @@ const { createServer } = require("http");
 const { Server } = require("socket.io");
 
 
+
 var indexRouter = require('./routes/index');
 var chatRouter = require('./routes/chat');
 var loginRouter = require('./routes/login');
@@ -16,6 +17,7 @@ var app = express();
 
 app.locals.title = "Capitana O";
 app.locals.cookie = false;
+
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
@@ -36,26 +38,16 @@ app.use('/', indexRouter);
 app.use('/chat', chatRouter);
 app.use('/login', loginRouter);
 
+
 //Cookies
-// app.get('/check-cookies', (req, res) => {
-//   const cookiesAccepted = req.session.cookiesAccepted || false
-//   console.log(cookiesAccepted)
-//   res.json({cookiesAccepted});
-// });
-
 app.get('/check-cookies', (req, res) => {
-  const userCookie = req.cookies.user ? JSON.parse(req.cookies.user) : null;
-
-  const cookiesAccepted = userCookie?.cookiesAccepted || false;
-  console.log(`Estado de cookies aceptadas: ${cookiesAccepted}`);
-  res.json({ cookiesAccepted });
+  const cookiesAccepted = req.session.cookiesAccepted || false
+  res.json({cookiesAccepted});
 });
 
 app.post('/accept-cookies', (req, res) => {
   req.session.user = { name: 'invitado'};
   res.cookie('role', 'invitado' ,{httpOnly: false}); //, { maxAge: 60 * 60 * 1000 }); // Expira en 1 hora);
-  console.log(req.session.user) 
-
   app.locals.cookie = true;
   res.sendStatus(200);
 });
